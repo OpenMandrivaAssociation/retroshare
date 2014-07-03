@@ -1,0 +1,181 @@
+--- retroshare-0.5.5/src/libretroshare/src/dbase/findex.cc.omv~	2014-07-03 12:37:50.202576035 +0200
++++ retroshare-0.5.5/src/libretroshare/src/dbase/findex.cc	2014-07-03 12:37:56.111502163 +0200
+@@ -1303,7 +1303,7 @@ void *FileIndex::findRef(const std::stri
+ 		std::cerr << "FileIndex::updateFileEntry() NULL parent";
+ 		std::cerr << std::endl;
+ //#endif
+-		return false;
++		return 0;
+ 	}
+ 	std::cerr << "Found parent directory: " << std::endl;
+ 	std::cerr << "  parent.name = " << parent->name << std::endl;
+--- retroshare-0.5.5/src/libretroshare/src/libretroshare.pro.omv~	2014-07-03 12:50:12.963290248 +0200
++++ retroshare-0.5.5/src/libretroshare/src/libretroshare.pro	2014-07-03 12:50:26.302123490 +0200
+@@ -180,7 +180,7 @@ linux-* {
+ 		# Normal libupnp
+ 	} else {
+ 		# Patched libupnp or new unreleased version
+-		DEFINES *= PATCHED_LIBUPNP
++#		DEFINES *= PATCHED_LIBUPNP
+ 	}
+ 
+ 	DEFINES *= UBUNTU
+--- retroshare-0.5.5/src/libretroshare/src/pgp/pgpkeyutil.cc.omv~	2014-07-03 12:40:51.127314165 +0200
++++ retroshare-0.5.5/src/libretroshare/src/pgp/pgpkeyutil.cc	2014-07-03 12:42:06.630370246 +0200
+@@ -129,7 +129,7 @@ std::string PGPKeyManagement::makeArmour
+ 
+ 	uint32_t crc = compute24bitsCRC((unsigned char *)keydata,key_size) ;
+ 
+-	unsigned char tmp[3] = { (crc >> 16) & 0xff, (crc >> 8) & 0xff, crc & 0xff } ;
++	unsigned char tmp[3] = { (unsigned char)((crc >> 16) & 0xff), (unsigned char)((crc >> 8) & 0xff), (unsigned char)(crc & 0xff) } ;
+ 	std::string crc_string ;
+ 	Radix64::encode((const char *)tmp,3,crc_string) ;
+ 
+--- retroshare-0.5.5/src/libretroshare/src/pqi/pqiqosstreamer.h.omv~	2014-07-03 12:37:12.867042793 +0200
++++ retroshare-0.5.5/src/libretroshare/src/pqi/pqiqosstreamer.h	2014-07-03 12:37:20.382948832 +0200
+@@ -33,8 +33,8 @@ class pqiQoSstreamer: public pqistreamer
+ 	public:
+ 		pqiQoSstreamer(RsSerialiser *rss, std::string peerid, BinInterface *bio_in, int bio_flagsin);
+ 
+-		static const uint32_t PQI_QOS_STREAMER_MAX_LEVELS =  10 ;
+-		static const float    PQI_QOS_STREAMER_ALPHA      = 2.0 ;
++		static constexpr uint32_t PQI_QOS_STREAMER_MAX_LEVELS =  10 ;
++		static constexpr float    PQI_QOS_STREAMER_ALPHA      = 2.0 ;
+ 
+ 		virtual void locked_storeInOutputQueue(void *ptr,int priority) ;
+ 		virtual int out_queue_size() const { return _total_item_count ; }
+--- retroshare-0.5.5/src/libretroshare/src/rsserver/p3peers.cc.omv~	2014-07-03 12:43:21.925428929 +0200
++++ retroshare-0.5.5/src/libretroshare/src/rsserver/p3peers.cc	2014-07-03 12:43:43.727156370 +0200
+@@ -876,7 +876,7 @@ bool p3Peers::GetPGPBase64StringAndCheck
+ 
+ 	uint32_t crc = PGPKeyManagement::compute24bitsCRC((unsigned char *)mem_block,mem_block_size) ;
+ 
+-	unsigned char tmp[3] = { (crc >> 16) & 0xff, (crc >> 8) & 0xff, crc & 0xff } ;
++	unsigned char tmp[3] = { (unsigned char)((crc >> 16) & 0xff), (unsigned char)((crc >> 8) & 0xff), (unsigned char)(crc & 0xff) } ;
+ 	Radix64::encode((const char *)tmp,3,gpg_base64_checksum) ;
+ 
+ 	delete[] mem_block ;
+--- retroshare-0.5.5/src/libretroshare/src/rsserver/rsinit.cc.omv~	2014-07-03 12:46:48.268849281 +0200
++++ retroshare-0.5.5/src/libretroshare/src/rsserver/rsinit.cc	2014-07-03 12:47:10.418572371 +0200
+@@ -419,7 +419,7 @@ int RsInit::InitRetroShare(int argcIgnor
+ #ifdef LOCALNET_TESTING
+ 			   >> parameter('R',"restrict-port" ,portRestrictions             ,"port1-port2","Apply port restriction"                   ,false)
+ #endif
+-				>> help() ;
++				;
+ 
+ 			as.defaultErrorHandling(true) ;
+ 
+--- retroshare-0.5.5/src/libretroshare/src/upnp/UPnPBase.cpp.omv~	2014-07-03 12:49:09.377085185 +0200
++++ retroshare-0.5.5/src/libretroshare/src/upnp/UPnPBase.cpp	2014-07-03 12:49:18.391972484 +0200
+@@ -27,6 +27,7 @@
+ #define UPNP_C
+ 
+ #include "UPnPBase.h"
++#include <upnp/UpnpString.h>
+ #include <stdio.h>
+ #include <string.h>
+ #include <sstream> // for std::istringstream
+--- retroshare-0.5.5/src/libretroshare/src/util/argstream.h.omv~	2014-07-03 12:44:25.853629716 +0200
++++ retroshare-0.5.5/src/libretroshare/src/util/argstream.h	2014-07-03 12:44:37.199487873 +0200
+@@ -141,9 +141,9 @@ namespace
+ 			inline OptionHolder(char s,
+ 					const char* l,
+ 					const char* desc);  
+-			friend OptionHolder help(char s='h',
+-					const char* l="help",
+-					const char* desc="Display this help");
++			friend OptionHolder help(char s,
++					const char* l,
++					const char* desc);
+ 		private:
+ 			std::string shortName_;
+ 			std::string longName_;
+--- retroshare-0.5.5/src/retroshare-gui/src/gui/common/GroupTreeWidget.cpp.omv~	2014-07-03 12:56:05.009889060 +0200
++++ retroshare-0.5.5/src/retroshare-gui/src/gui/common/GroupTreeWidget.cpp	2014-07-03 12:56:24.590644267 +0200
+@@ -503,7 +503,6 @@ void GroupTreeWidget::calculateScore(QTr
+ 
+ 	/* Find out which has given word in it */
+ 	QTreeWidgetItemIterator itemIterator(ui->treeWidget);
+-	QTreeWidgetItem *item;
+ 	while ((item = *itemIterator) != NULL) {
+ 		itemIterator++;
+ 
+--- retroshare-0.5.5/src/retroshare-gui/src/gui/elastic/graphwidget.cpp.omv~	2014-07-03 12:59:45.715129865 +0200
++++ retroshare-0.5.5/src/retroshare-gui/src/gui/elastic/graphwidget.cpp	2014-07-03 13:00:02.438920789 +0200
+@@ -275,11 +275,11 @@ static void convolveWithGaussian(double
+ 				bf[2*(i+S*j)+1] = 0 ;
+ 			}
+ 
+-		unsigned long nn[2] = {S,S};
++		unsigned long nn[2] = {(unsigned long)S,(unsigned long)S};
+ 		fourn(&bf[-1],&nn[-1],2,1) ;
+ 	}
+ 
+-	unsigned long nn[2] = {S,S};
++	unsigned long nn[2] = {(unsigned long)S,(unsigned long)S};
+ 	fourn(&forceMap[-1],&nn[-1],2,1) ;
+ 
+ 	for(int i=0;i<S;++i)
+--- retroshare-0.5.5/src/retroshare-gui/src/gui/elastic/node.h.omv~	2014-07-03 12:52:37.153487623 +0200
++++ retroshare-0.5.5/src/retroshare-gui/src/gui/elastic/node.h	2014-07-03 12:52:47.502358244 +0200
+@@ -111,10 +111,10 @@ private:
+ 	 std::string _ssl_id ;
+ 	 std::string _gpg_id ;
+ 
+-	 static const float MASS_FACTOR = 10 ;
+-	 static const float FRICTION_FACTOR = 10.8 ;
+-	 static const float REPULSION_FACTOR = 4 ;
+-	 static const float NODE_DISTANCE = 130.0 ;
++	 static constexpr float MASS_FACTOR = 10 ;
++	 static constexpr float FRICTION_FACTOR = 10.8 ;
++	 static constexpr float REPULSION_FACTOR = 4 ;
++	 static constexpr float NODE_DISTANCE = 130.0 ;
+ };
+ 
+ #endif
+--- retroshare-0.5.5/src/retroshare-gui/src/rshare.cpp.omv~	2014-07-03 12:50:54.125775646 +0200
++++ retroshare-0.5.5/src/retroshare-gui/src/rshare.cpp	2014-07-03 12:51:44.118150656 +0200
+@@ -220,23 +220,23 @@ Rshare::showUsageMessageBox()
+ 
+   out << "Available Options:" << endl;
+   out << "<table>";
+-  //out << trow(tcol("-"ARG_HELP) + 
++  //out << trow(tcol("-" ARG_HELP) + 
+   //            tcol(tr("Displays this usage message and exits.")));
+-  out << trow(tcol("-"ARG_RESET) +
++  out << trow(tcol("-" ARG_RESET) +
+               tcol(tr("Resets ALL stored RetroShare settings.")));
+-  out << trow(tcol("-"ARG_DATADIR" &lt;dir&gt;") +
++  out << trow(tcol("-" ARG_DATADIR " &lt;dir&gt;") +
+               tcol(tr("Sets the directory RetroShare uses for data files.")));
+-  out << trow(tcol("-"ARG_LOGFILE" &lt;file&gt;") +
++  out << trow(tcol("-" ARG_LOGFILE " &lt;file&gt;") +
+               tcol(tr("Sets the name and location of RetroShare's logfile.")));
+-  out << trow(tcol("-"ARG_LOGLEVEL" &lt;level&gt;") +
++  out << trow(tcol("-" ARG_LOGLEVEL " &lt;level&gt;") +
+               tcol(tr("Sets the verbosity of RetroShare's logging.") +
+                    "<br>[" + Log::logLevels().join("|") +"]"));
+-  out << trow(tcol("-"ARG_GUISTYLE" &lt;style&gt;") +
++  out << trow(tcol("-" ARG_GUISTYLE " &lt;style&gt;") +
+               tcol(tr("Sets RetroShare's interface style.") +
+                    "<br>[" + QStyleFactory::keys().join("|") + "]"));
+-  out << trow(tcol("-"ARG_GUISTYLESHEET" &lt;stylesheet&gt;") +
++  out << trow(tcol("-" ARG_GUISTYLESHEET " &lt;stylesheet&gt;") +
+               tcol(tr("Sets RetroShare's interface stylesheets.")));                   
+-  out << trow(tcol("-"ARG_LANGUAGE" &lt;language&gt;") + 
++  out << trow(tcol("-" ARG_LANGUAGE " &lt;language&gt;") + 
+               tcol(tr("Sets RetroShare's language.") +
+                    "<br>[" + LanguageSupport::languageCodes().join("|") + "]"));
+   out << "</table>";
+--- retroshare-0.5.5/src/retroshare-nogui/src/retroshare.cc.omv~	2014-07-03 13:08:17.859727176 +0200
++++ retroshare-0.5.5/src/retroshare-nogui/src/retroshare.cc	2014-07-03 13:08:23.030662531 +0200
+@@ -134,7 +134,7 @@ int main(int argc, char **argv)
+ 	   >> parameter('P',"ssh-p-hash"     ,sshPwdHash    ,"hash"  ,"Ssh login password hash (Generated by retroshare-nogui -G)",false)
+ 	   >> parameter('K',"ssh-key-file"   ,sshRsaFile    ,"RSA key file", "RSA key file for SSH login (not yet implemented).",false  )// NOT FINISHED YET.
+ 
+-		>> help() ;
++		;
+ 
+ 	// Normally argstream would handle this by itself, if we called
+ 	// 	as.defaultErrorHandling() ;
