@@ -1,6 +1,6 @@
 Name: retroshare
 Version: 0.5.5
-Release: 1
+Release: 2
 Source0: http://downloads.sourceforge.net/project/retroshare/RetroShare/0.5.5c/retroshare_%{version}-0.7068.tar.gz
 Patch0: retroshare-0.5.5-compile.patch
 Summary: Secure decentralised communication platform
