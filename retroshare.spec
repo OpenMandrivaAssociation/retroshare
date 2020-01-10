@@ -37,7 +37,7 @@ Non-GUI version of RetroShare
 
 %prep
 %setup -q
-%apply_patches
+%autopatch -p1
 cd src
 qmake *.pro
 
