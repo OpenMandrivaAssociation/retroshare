@@ -7,6 +7,7 @@ Summary: Secure decentralised communication platform
 URL: https://retroshare.sf.net/
 License: GPL
 Group: Networking/File transfer
+BuildRequires:	make
 BuildRequires: pkgconfig(QtGui) < 5.0.0
 BuildRequires: pkgconfig(libssh)
 BuildRequires: pkgconfig(libupnp)
